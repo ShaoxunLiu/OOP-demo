@@ -1,6 +1,6 @@
 ####slide 3####
 #input 2 sequences
-DNA <- bio3d::read.fasta(r'(E:/Desktop/P53DNA.fasta)')
+DNA <- bio3d::read.fasta(r'(P53DNA.fasta)')
 DNA <- paste(DNA$ali, collapse = '')
 DNA <- substr(DNA, 45*3+1, nchar(DNA))
 DNA <- Biostrings::DNAString(DNA)
