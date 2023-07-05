@@ -71,10 +71,12 @@ linear_model <- lm(dist~speed, data = df)
 summary(linear_model)
 
 #building random forest model
+install.packages('randomForest')
 random_forest_model <- randomForest::randomForest(dist~speed, data = df)
 summary(random_forest_model)
 
 #building SVM model
+install.packages('e1071')
 SVM_model <- e1071::svm(dist~speed, data = df)
 summary(SVM_model)
 
@@ -84,6 +86,7 @@ predict(random_forest_model, speeds)
 predict(SVM_model, speeds)
 
 #whats going on with predict()?
+install.packages('sloop')
 sloop::ftype(predict)
 
 ####slide 5####
