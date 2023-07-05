@@ -1,6 +1,6 @@
 ####slide 3####
 #input 2 sequences
-DNA <- bio3d::read.fasta(r'(P53DNA.fasta)')
+DNA <- bio3d::read.fasta(r'(E:/Desktop/P53DNA.fasta)')
 DNA <- paste(DNA$ali, collapse = '')
 DNA <- substr(DNA, 45*3+1, nchar(DNA))
 DNA <- Biostrings::DNAString(DNA)
@@ -18,8 +18,9 @@ getResidue <- function(seq, pos){
 #lets try on the two sequences
 getResidue(AA,5)
 getResidue(DNA,5)
+#getResidue() can't get the 5th residue for a DNA sequence, it only gives me the 5th base
 
-#make the two sequences into two differnt class of objects
+#make the two sequences into two different class of objects
 P53DNA <- list(name = 'P53', seq = DNA)
 class(P53DNA) <- 'DNA'
 
@@ -90,14 +91,12 @@ sloop::ftype(predict)
 setClass('DNA',
          slots = list(name = 'character',
                       source = 'character',
-                      seq = 'character',
-                      is.p53 = 'logical'))
+                      seq = 'character'))
 
 setClass('AA',
          slots = list(name = 'character',
                       source = 'character',
-                      seq = 'character',
-                      is.p53 = 'logical'))
+                      seq = 'character'))
 
 setClass('AminoAcid',
          slots = list(residueType = 'character'))
@@ -124,8 +123,9 @@ setMethod("getResidue",
           })
 
 #see how it works
-P53DNA <- new('DNA', name = 'P53', source = 'Hs', seq = DNA, is.p53 = T)
-P53AA <- new('AA', name = 'P53', source = 'Hs', seq = AA, is.p53 = T)
+P53DNA <- new('DNA', name = 'P53', source = 'Hs', seq = DNA)
+P53AA <- new('AA', name = 'P53', source = 'Hs', seq = AA)
+P53DNA
 getResidue(P53AA,5)
 getResidue(P53DNA,5)
 
@@ -148,6 +148,7 @@ AminoAcids <- lapply(dt, getResidue, pos = 5)
 unlist(lapply(AminoAcids, getChar))
 
 #classes can inherit from other classes
+#Lets create classes for certified p53 sequences
 setClass("p53_DNA",
          slots = list(mutated = 'logical',
                       mut_pos = 'numeric'),
@@ -158,7 +159,9 @@ setClass("p53_AA",
                       mut_pos = 'numeric'),
          contains = "AA")
 
-#why is this important? lets try to mutate P53
+#why is this important? Let's say we only want to mutate P53 sequences that are not mutated
+#(i.e. only care about SNPs)
+#DNA and AA mutates in different manner, mutate residues for AA, mutate bases for DNA
 setClass('AminoAcid',
          slots = list(residueType = 'character'))
 
@@ -171,24 +174,49 @@ setGeneric("mutateP53", function(seq, pos, mutTo){
 })
 
 setMethod("mutateP53",
-          c(seq = "DNA", pos = 'numeric', mutTo = 'Base'),
+          c(seq = "p53_DNA", pos = 'numeric', mutTo = 'Base'),
           function(seq, pos, mutTo){
+            if(seq@mutated){
+              return(print(paste0('sequence already mutated at position: ', seq@mut_pos)))
+            }
             substr(seq@seq, pos, pos) <- mutTo@baseType
+            seq@mutated <- T
+            seq@mut_pos <- pos
             return(seq)
           })
 
 setMethod("mutateP53",
-          c(seq = "AA", pos = 'numeric', mutTo = 'AminoAcid'),
+          c(seq = "p53_AA", pos = 'numeric', mutTo = 'AminoAcid'),
           function(seq, pos, mutTo){
+            if(seq@mutated){
+              return(print(paste0('sequence already mutated at position: ', seq@mut_pos)))
+
+            }
             substr(seq@seq, pos, pos) <- mutTo@residueType
+            seq@mutated <- T
+            seq@mut_pos <- pos
             return(seq)
           })
 
 b <- new('Base', baseType = 'A')
 a <- new('AminoAcid', residueType = 'K')
 
-newP53DNA <- mutateP53(P53DNA, 13, b)
-getResidue(newP53DNA,5)
+mutateP53(P53DNA, 13, b)
+P53DNA_new <- new('p53_DNA', name = 'P53', source = 'Hs', seq = DNA,  mutated = F, mut_pos = 0)
+mutP53DNA <- mutateP53(P53DNA_new, 13, b)
 
-newP53AA <- mutateP53(P53AA, 5, a)
-getResidue(newP53AA,5)
+#Let's check the mutated residue
+getResidue(P53DNA_new, 5)
+getResidue(mutP53DNA,5)
+#we did not define getResidue() for class "p53_DNA", why would this function work?
+
+
+
+
+mutateP53(P53AA, 5, a)
+P53AA_new <- new('p53_AA', name = 'P53', source = 'Hs', seq = AA,  mutated = F, mut_pos = 0)
+mutP53AA <- mutateP53(P53AA_new, 5, a)
+getResidue(P53AA_new, 5)
+getResidue(mutP53AA,5)
+#Can we mutate a mutated P53 sequence?
+mutateP53(mutP53AA, 10, a)
