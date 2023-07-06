@@ -205,7 +205,7 @@ b <- new('Base', baseType = 'A')
 a <- new('AminoAcid', residueType = 'K')
 
 mutateP53(P53DNA, 13, b)
-P53DNA_new <- new('p53_DNA', name = 'P53', source = 'Hs', seq = DNA,  mutated = F, mut_pos = 0)
+P53DNA_new <- new('p53_DNA', name = P53DNA@name, source = 'Hs', seq = DNA,  mutated = F, mut_pos = 0)
 mutP53DNA <- mutateP53(P53DNA_new, 13, b)
 
 #Let's check the mutated residue
@@ -214,7 +214,7 @@ getResidue(mutP53DNA,5)
 #we did not define getResidue() for class "p53_DNA", why would this function work?
 
 
-
+predict.lm
 
 mutateP53(P53AA, 5, a)
 P53AA_new <- new('p53_AA', name = 'P53', source = 'Hs', seq = AA,  mutated = F, mut_pos = 0)
